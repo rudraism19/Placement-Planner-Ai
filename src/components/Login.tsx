@@ -20,6 +20,7 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [firebaseReady, setFirebaseReady] = useState(false);
+  const [showDomainBypass, setShowDomainBypass] = useState(false);
 
   // Initialize Firebase client on mount
   useEffect(() => {
@@ -84,12 +85,32 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps) {
         setErrorMessage("Sign-in popup closed before completion.");
       } else if (err.code === "auth/operation-not-allowed") {
         setErrorMessage("Google Sign-In is not enabled in your Firebase console. Please go to your Firebase Console under 'Build' -> 'Authentication' -> 'Sign-in method' and enable the Google provider.");
+      } else if (err.code === "auth/unauthorized-domain" || (err.message && err.message.includes("unauthorized-domain")) || (err.message && err.message.includes("auth/unauthorized-domain"))) {
+        setErrorMessage("Firebase Error (auth/unauthorized-domain): This domain is not authorized for OAuth operations in your Firebase project.");
+        setShowDomainBypass(true);
       } else {
         setErrorMessage(err.message || "Google Authentication failed.");
+        if (err.message && (err.message.toLowerCase().includes("unauthorized") || err.message.toLowerCase().includes("domain") || err.message.toLowerCase().includes("origin"))) {
+          setShowDomainBypass(true);
+        }
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDemoBypass = () => {
+    setIsLoading(true);
+    const demoProfile = {
+      ...defaultProfile,
+      name: "Rudra Sen (Demo)",
+      email: "rudraism19@gmail.com",
+    };
+    
+    setTimeout(() => {
+      setIsLoading(false);
+      onLoginSuccess("demo-user-uid", demoProfile);
+    }, 600);
   };
 
   return (
@@ -198,6 +219,48 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps) {
               )}
               <span>{isLoading ? "Signing in..." : "Continue with Google"}</span>
             </button>
+
+            {/* Divider */}
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-[#27272a]"></div>
+              <span className="flex-shrink mx-4 text-[10px] text-[#71717a] font-sans">or</span>
+              <div className="flex-grow border-t border-[#27272a]"></div>
+            </div>
+
+            {/* Demo Sign In Button (Bypass) */}
+            <button
+              type="button"
+              onClick={handleDemoBypass}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 hover:border-indigo-500/40 text-indigo-400 text-xs font-semibold font-sans rounded-xl transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>Explore with Demo Account</span>
+            </button>
+
+            {showDomainBypass && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-[#27272a]/40 border border-[#3f3f46] rounded-xl p-4 text-left space-y-3"
+              >
+                <h3 className="text-xs font-semibold text-amber-400 font-sans flex items-center gap-1">
+                  <Sparkles size={12} className="text-amber-400" />
+                  Authorized Domains Guide
+                </h3>
+                <p className="text-[11px] text-[#a1a1aa] leading-relaxed font-sans">
+                  Firebase Authentication prevents Google Sign-In popups from unauthorized origins. You can authorize this domain in your Firebase settings:
+                </p>
+                <div className="space-y-1 text-[10px]">
+                  <p className="text-[#71717a] font-semibold uppercase">Domain to authorize:</p>
+                  <code className="block bg-[#18181b] p-1.5 rounded border border-[#27272a] text-indigo-300 font-mono break-all select-all">
+                    {typeof window !== 'undefined' ? window.location.hostname : '...'}
+                  </code>
+                </div>
+                <p className="text-[10px] text-[#71717a] leading-relaxed font-sans">
+                  Steps: Go to <span className="text-[#a1a1aa] font-semibold">Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains</span> and click "Add domain".
+                </p>
+              </motion.div>
+            )}
           </div>
 
           <div className="pt-2 text-center">
