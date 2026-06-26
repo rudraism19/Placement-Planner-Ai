@@ -16,6 +16,7 @@ import {
   enableNetwork,
   disableNetwork
 } from "firebase/firestore";
+import firebaseConfig from "../../firebase-applet-config.json";
 
 let isInitialized = false;
 let firebaseApp: any = null;
@@ -29,11 +30,7 @@ export async function setupFirebase() {
   }
 
   try {
-    const res = await fetch("/api/firebase-config");
-    if (!res.ok) {
-      throw new Error("Failed to fetch Firebase applet configuration.");
-    }
-    const config = await res.json();
+    const config = firebaseConfig;
     
     if (getApps().length === 0) {
       firebaseApp = initializeApp(config);
@@ -49,10 +46,10 @@ export async function setupFirebase() {
     }
     isInitialized = true;
     
-    console.log("Firebase successfully initialized on client.");
+    console.log("Firebase successfully initialized on client (statically compiled config).");
     return { auth: firebaseAuth, db: firebaseDb };
   } catch (error) {
-    console.error("Firebase initialization failed:", error);
+    console.error("Firebase initialization failed statically:", error);
     throw error;
   }
 }
