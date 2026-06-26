@@ -42,7 +42,11 @@ export async function setupFirebase() {
     }
 
     firebaseAuth = getAuth(firebaseApp);
-    firebaseDb = getFirestore(firebaseApp, config.firestoreDatabaseId || "(default)");
+    if (config.firestoreDatabaseId && config.firestoreDatabaseId !== "(default)") {
+      firebaseDb = getFirestore(firebaseApp, config.firestoreDatabaseId);
+    } else {
+      firebaseDb = getFirestore(firebaseApp);
+    }
     isInitialized = true;
     
     console.log("Firebase successfully initialized on client.");

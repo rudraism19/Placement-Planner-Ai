@@ -33,9 +33,9 @@ import MockInterview from "./components/MockInterview";
 import MentorChat from "./components/MentorChat";
 import Login from "./components/Login";
 import LandingPage from "./components/LandingPage";
-import { setupFirebase, signOut } from "./lib/firebase";
+import { setupFirebase, signOut, getFirebaseDb } from "./lib/firebase";
 import { onAuthStateChanged, getAuth } from "firebase/auth";
-import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 import { Sparkles, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -66,7 +66,7 @@ export default function App() {
             
             // Load user profile from firestore
             try {
-              const db = getFirestore();
+              const db = getFirebaseDb();
               const userRef = doc(db, "users", user.email.toLowerCase().trim());
               const userDoc = await getDoc(userRef);
               if (userDoc.exists()) {
@@ -123,7 +123,7 @@ export default function App() {
     setProfile(updatedProfile);
     if (authToken && updatedProfile.email) {
       try {
-        const db = getFirestore();
+        const db = getFirebaseDb();
         const emailLower = updatedProfile.email.toLowerCase().trim();
         await setDoc(doc(db, "users", emailLower), updatedProfile);
         console.log("Successfully saved profile to Firestore!");

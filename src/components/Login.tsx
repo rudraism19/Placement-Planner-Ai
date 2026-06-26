@@ -6,9 +6,10 @@ import { defaultProfile } from "../initialData";
 import { 
   setupFirebase, 
   signInWithPopup, 
-  googleProvider 
+  googleProvider,
+  getFirebaseDb
 } from "../lib/firebase";
-import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 interface LoginProps {
   onLoginSuccess: (token: string, profile: StudentProfile) => void;
@@ -24,15 +25,15 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps) {
   useEffect(() => {
     setupFirebase()
       .then(() => setFirebaseReady(true))
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Firebase setup failed in Login component:", err);
-        setErrorMessage("Unable to connect to the authentication server. Please refresh.");
+        setErrorMessage(`Unable to connect to the authentication server: ${err.message || err}. Please refresh.`);
       });
   }, []);
 
   const handleProfileSync = async (uid: string, userEmail: string, displayName: string | null) => {
     const emailLower = userEmail.toLowerCase().trim();
-    const db = getFirestore();
+    const db = getFirebaseDb();
     const userRef = doc(db, "users", emailLower);
     
     let profileData: StudentProfile;
