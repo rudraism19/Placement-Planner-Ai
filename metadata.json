@@ -1,0 +1,6 @@
+{
+  "name": "Placement Planner AI",
+  "description": "AI-powered career mentor for students preparing for campus placements and internships with skill trackers, resume analyzers, mock interviews, and tailored roadmap generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
